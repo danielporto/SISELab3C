@@ -1,28 +1,40 @@
 import java.util.ArrayList;
 //producer consumer test
 public class ExerciseC {
-    private final static int MaxTasks = 10;
-    private final static int Limit = 1;
+    private final static int MaxTasks = 100;
+    private final static int Limit = 10;
 
     static class TaskList {
         private ArrayList<Integer> contents = new ArrayList<Integer>();
         private int pos = -1;
 
-        public int get() {
-            if (contents.isEmpty()) {
-                throw new RuntimeException("The event queue is empty!");
+        public synchronized int get() {
+            while (contents.isEmpty()) {
+                //throw new RuntimeException("The event queue is empty!");
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
             int value = contents.remove(pos);
             pos--;
+            notifyAll();
             return value;
         }
 
-        public void put(int value) {
-            if (contents.size() >= Limit) {
-                throw new RuntimeException("The event queue is full!");
+        public synchronized void put(int value) {
+            while (contents.size() >= Limit) {
+//                throw new RuntimeException("The event queue is full!");
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
             contents.add(value);
             pos++;
+            notifyAll();
         }
     }
     
@@ -65,7 +77,9 @@ public class ExerciseC {
                 System.out.println("Producer #" + this.number + " put: " + i);
                 try {
                     sleep((int)(Math.random() * 100));
-                } catch (InterruptedException e) { }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
